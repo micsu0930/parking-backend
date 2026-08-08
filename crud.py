@@ -46,6 +46,9 @@ def create_reservation(
     end_time: datetime,
 ) -> models.Reservation:
     """Create and save a new reservation after validating time availability."""
+    if end_time <= start_time:
+        raise ValueError("Reservation end time must be after start time.")
+        
     if check_time_overlap(db, spot_id=spot_id, start_time=start_time, end_time=end_time):
         raise ValueError("Parking spot is already reserved for the requested time slot.")
 
@@ -73,3 +76,11 @@ def cancel_reservation(db: Session, reservation_id: int) -> Optional[models.Rese
     db.commit()
     db.refresh(reservation)
     return reservation
+
+
+def get_reservations_for_spot(db: Session,spot_id: int,active_only: bool = False) -> List[models.Reservation]:
+    """Fetch all reservations associated with a specific parking spot."""
+    query = db.query(models.Reservation).filter(models.Reservation.spot_id == spot_id)
+    if active_only:
+        query = query.filter(models.Reservation.status == models.ReservationStatus.ACTIVE)
+    return query.all()
