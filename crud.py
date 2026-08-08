@@ -1,0 +1,19 @@
+from datetime import datetime
+from typing import List, Optional
+from sqlalchemy.orm import Session
+import models
+
+
+def get_parking_spots(db: Session, active_only: bool = True) -> List[models.ParkingSpot]:
+    """Fetch parking spots from the database. Default filters for active spots."""
+    query = db.query(models.ParkingSpot)
+    if active_only:
+        query = query.filter(models.ParkingSpot.is_active.is_(True))
+    return query.all()
+
+
+def get_spot_by_id(db: Session, spot_id: int) -> Optional[models.ParkingSpot]:
+    """Fetch a single parking spot by its ID."""
+    return db.query(models.ParkingSpot).filter(models.ParkingSpot.id == spot_id).first()
+
+
