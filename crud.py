@@ -17,3 +17,23 @@ def get_spot_by_id(db: Session, spot_id: int) -> Optional[models.ParkingSpot]:
     return db.query(models.ParkingSpot).filter(models.ParkingSpot.id == spot_id).first()
 
 
+def check_time_overlap(
+    db: Session, 
+    spot_id: int, 
+    start_time: datetime, 
+    end_time: datetime, 
+    exclude_reservation_id: Optional[int] = None
+) -> bool:
+
+    query = db.query(models.Reservation).filter(
+        models.Reservation.spot_id == spot_id,
+        models.Reservation.status == models.ReservationStatus.ACTIVE.value,
+        models.Reservation.start_time < end_time,
+        models.Reservation.end_time > start_time
+    )
+    
+    if exclude_reservation_id:
+        query = query.filter(models.Reservation.id != exclude_reservation_id)
+    return query.first() is not None
+
+    
